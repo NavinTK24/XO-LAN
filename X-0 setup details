@@ -1,0 +1,5 @@
+Create a new folder
+Install Node js, NPM 
+Add in the JS file (XO-testing-server.js) inside the folder
+Create another sub folder (eg:testing) and put in the html file (XO-testing)
+In the html file, allocate the path name as your created directory names
