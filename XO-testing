@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Box Check</title>
+    <link rel="icon" href="data:">
+
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #box1,
+        #box2,
+        #box3,
+        #box4 {
+            border: 2px solid black;
+            height: 70px;
+            width: 70px;
+            margin: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="boxes" id="box1"></div>
+        <div class="boxes" id="box2"></div>
+        <div class="boxes" id="box3"></div>
+        <div class="boxes" id="box4"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io();
+        var count = 0;
+        const boxClick = document.querySelectorAll(".boxes");
+        boxClick.forEach(box => {
+
+            box.addEventListener('click', (event) => {
+                if (event.target.textContent == "") {
+                    if (count % 2 == 0) {
+                        socket.emit('Xplayer', {id: event.target.id});
+                    } else {
+                        socket.emit('Oplayer', {id: event.target.id});
+                    }
+                    count++;
+                }
+            });
+        });
+
+        socket.on('Xplayer', (data) => {
+            const Xbox = document.getElementById(data.id);
+            Xbox.style.backgroundColor="cyan";
+            Xbox.textContent = "X";
+            count = data.count;
+        });
+
+        socket.on('Oplayer', (data) => {
+            const Obox = document.getElementById(data.id);
+            Obox.style.backgroundColor="pink";
+            Obox.textContent = "O";
+            count = data.count;
+        });
+
+
+    </script>
+</body>
+
+</html>
