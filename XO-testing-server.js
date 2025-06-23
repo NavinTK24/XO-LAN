@@ -5,7 +5,7 @@ const io = require('socket.io')(http);
 const path = require('path');
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname,'testing','index4.html'));
+    res.sendFile(path.join(__dirname,'XO-testing.html'));
 });
 
 let count = 0;
