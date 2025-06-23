@@ -85,7 +85,7 @@
             Xbox.style.backgroundColor="cyan";
             Xbox.textContent = "X";
             count = data.count;
-            checkWinner();
+            
         });
 
         socket.on('Oplayer', (data) => {
