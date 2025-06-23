@@ -12,7 +12,7 @@
         }
         body {
             background: linear-gradient(45deg, cyan, rgb(252, 7, 178));
-        }
+        } 
         .container {
             display: flex;
             height: 100vh;
