@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Box Check</title>
+    <title>Tic Tac Toe</title>
     <link rel="icon" href="data:">
 
     <style>
@@ -12,12 +12,13 @@
         }
         body {
             background: linear-gradient(45deg, cyan, rgb(252, 7, 178));
-        } 
+        }
         .container {
             display: flex;
             height: 100vh;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .boxes {
@@ -30,10 +31,30 @@
             justify-content: center;
             align-items: center;
             background-color: rgb(113, 93, 126);
+            font-size: 30px;
+            font-family:Verdana, Geneva, Tahoma, sans-serif;
         }
         .row1, .row2, .row3 {
             display: flex;
             flex-direction: column;
+        }
+        .alertBox {
+            position: fixed;
+            display: none;
+        }
+        .xogameWin{
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            height: 266px;
+            width: 266px;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(43, 42, 43);
+            border-radius: 15px;
+        } 
+        .XorO {
+            font-size: 90px;
         }
     </style>
 </head>
@@ -41,21 +62,28 @@
 <body>
     <div class="container">
         <div class="row1">
-            <div class="boxes" id="box1"></div>
-            <div class="boxes" id="box2"></div>
-            <div class="boxes" id="box3"></div>
+            <div class="boxes" id="box1" data-value="0"></div>
+            <div class="boxes" id="box2" data-value="1"></div>
+            <div class="boxes" id="box3" data-value="2"></div>
         </div>
 
         <div class="row2">
-            <div class="boxes" id="box4"></div>
-            <div class="boxes" id="box5"></div>
-            <div class="boxes" id="box6"></div>
+            <div class="boxes" id="box4" data-value="3"></div>
+            <div class="boxes" id="box5" data-value="4"></div>
+            <div class="boxes" id="box6" data-value="5"></div>
         </div>
 
         <div class="row3">
-            <div class="boxes" id="box7"></div>
-            <div class="boxes" id="box8"></div>
-            <div class="boxes" id="box9"></div>
+            <div class="boxes" id="box7" data-value="6"></div>
+            <div class="boxes" id="box8" data-value="7"></div>
+            <div class="boxes" id="box9" data-value="8"></div>
+        </div>
+
+        <div class="alertBox">
+            <div class="xogameWin">
+                <h1 class="XorO"></h1> <br>
+                <h1>Player Won</h1>
+            </div>
         </div>
     </div>
 
@@ -70,21 +98,48 @@
             box.addEventListener('click', (event) => {
                 if (event.target.textContent == "") {
                     if (count % 2 == 0) {
-                        socket.emit('Xplayer', {id: event.target.id});
+                        socket.emit('Xplayer', {id: event.target.id, 
+                            value:Number(event.target.dataset.value)});
                     } else {
-                        socket.emit('Oplayer', {id: event.target.id});
+                        socket.emit('Oplayer', {id: event.target.id, 
+                            value:Number(event.target.dataset.value)});
                     }
-                    count++;
+                    
                 }
             });
         });
         
         
+        
+        let xoGame = [
+            '', '', '',
+            '', '', '',
+            '', '', ''
+        ];
         socket.on('Xplayer', (data) => {
             const Xbox = document.getElementById(data.id);
             Xbox.style.backgroundColor="cyan";
             Xbox.textContent = "X";
             count = data.count;
+
+            xoGame[data.value] = 'X';
+
+            if(
+                (xoGame[0] === 'X' && xoGame[1] === 'X' && xoGame[2] === 'X') ||
+                (xoGame[3] === 'X' && xoGame[4] === 'X' && xoGame[5] === 'X') ||
+                (xoGame[6] === 'X' && xoGame[7] === 'X' && xoGame[8] === 'X') ||
+                (xoGame[0] === 'X' && xoGame[3] === 'X' && xoGame[6] === 'X') ||
+                (xoGame[1] === 'X' && xoGame[4] === 'X' && xoGame[7] === 'X') ||
+                (xoGame[2] === 'X' && xoGame[5] === 'X' && xoGame[8] === 'X') ||
+                (xoGame[0] === 'X' && xoGame[4] === 'X' && xoGame[8] === 'X') ||
+                (xoGame[2] === 'X' && xoGame[4] === 'X' && xoGame[6] === 'X') 
+            ) {
+                setTimeout(() => {
+                    document.querySelector('.XorO').textContent="X";
+                    document.querySelector('.xogameWin').style.color="cyan"
+                    document.querySelector('.alertBox').style.display="block";
+                }, 100);
+            } 
             
         });
 
@@ -93,8 +148,26 @@
             Obox.style.backgroundColor="pink";
             Obox.textContent = "O";
             count = data.count;
-        });
 
+            xoGame[data.value] = 'O';
+
+            if(
+                (xoGame[0] === 'O' && xoGame[1] === 'O' && xoGame[2] === 'O') ||
+                (xoGame[3] === 'O' && xoGame[4] === 'O' && xoGame[5] === 'O') ||
+                (xoGame[6] === 'O' && xoGame[7] === 'O' && xoGame[8] === 'O') ||
+                (xoGame[0] === 'O' && xoGame[3] === 'O' && xoGame[6] === 'O') ||
+                (xoGame[1] === 'O' && xoGame[4] === 'O' && xoGame[7] === 'O') ||
+                (xoGame[2] === 'O' && xoGame[5] === 'O' && xoGame[8] === 'O') ||
+                (xoGame[0] === 'O' && xoGame[4] === 'O' && xoGame[8] === 'O') ||
+                (xoGame[2] === 'O' && xoGame[4] === 'O' && xoGame[6] === 'O') 
+            ) {
+                setTimeout(() => {
+                    document.querySelector('.XorO').textContent="O";
+                    document.querySelector('.xogameWin').style.color="rgb(238, 5, 238)"
+                    document.querySelector('.alertBox').style.display="block";               
+                }, 100);
+            } 
+        });
 
     </script>
 </body>
