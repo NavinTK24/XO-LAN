@@ -8,18 +8,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname,'XO-testing.html'));
 });
 
-//let count = 0;
-
 io.on('connection', (socket) => {
     console.log("Player connected: "+socket.id);
-
-    socket.on('Xplayer', (data) => {
+    var count = 0;
+    socket.on('playerChoice', (data) => {
+        const player = (count%2 === 0)? 'X' : 'O';
+        io.emit('updatedDiv', {
+            id: data.id,
+            value: Number(data.value),
+            player: player,
+        });
         count++;
-        io.emit('Xplayer', {id: data.id, count: count, value: data.value});
-    });
-    socket.on('Oplayer', (data) => {
-        count++;
-        io.emit('Oplayer', {id: data.id, count: count, value: data.value});
     });
 });
 

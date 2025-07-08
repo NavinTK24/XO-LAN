@@ -40,7 +40,7 @@
         }
         .alertBox {
             position: fixed;
-            display: none;
+            display: block;
         }
         .xogameWin{
             display: flex;
@@ -55,6 +55,18 @@
         } 
         .XorO {
             font-size: 90px;
+        }
+        .replayDiv{
+            position: fixed;
+            margin: 5px;
+            display: flex;
+            justify-content: center;           
+        }
+        .replayButton {
+            background-color: rgb(185, 66, 66);
+            width: 80px;
+            height: 30px;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -84,6 +96,9 @@
                 <h1 class="XorO"></h1> <br>
                 <h1>Player Won</h1>
             </div>
+            <div class="replayDiv">
+                <button class="replayButton">Replay</button>
+            </div>
         </div>
     </div>
 
@@ -91,20 +106,15 @@
 
     <script>
         const socket = io();
-        var count = 0;
         const boxClick = document.querySelectorAll(".boxes");
         boxClick.forEach(box => {
 
             box.addEventListener('click', (event) => {
-                if (event.target.textContent == "") {
-                    if (count % 2 == 0) {
-                        socket.emit('Xplayer', {id: event.target.id, 
-                            value:Number(event.target.dataset.value)});
-                    } else {
-                        socket.emit('Oplayer', {id: event.target.id, 
-                            value:Number(event.target.dataset.value)});
-                    }
-                    
+                if(event.target.textContent==="") {
+                    socket.emit('playerChoice', {
+                        id: event.target.id,
+                        value: parseInt(event.target.dataset.value)
+                    });
                 }
             });
         });
@@ -116,58 +126,46 @@
             '', '', '',
             '', '', ''
         ];
-        socket.on('Xplayer', (data) => {
-            const Xbox = document.getElementById(data.id);
-            Xbox.style.backgroundColor="cyan";
-            Xbox.textContent = "X";
-            count = data.count;
+        let num = 0;
+        socket.on('updatedDiv', (data) => {
+            const box = document.getElementById(data.id);
+            if (box.textContent === '') {
+                box.textContent = data.player;
+                box.style.background = (box.textContent === 'X') ? 'cyan' : 'pink';
 
-            xoGame[data.value] = 'X';
-
-            if(
-                (xoGame[0] === 'X' && xoGame[1] === 'X' && xoGame[2] === 'X') ||
-                (xoGame[3] === 'X' && xoGame[4] === 'X' && xoGame[5] === 'X') ||
-                (xoGame[6] === 'X' && xoGame[7] === 'X' && xoGame[8] === 'X') ||
-                (xoGame[0] === 'X' && xoGame[3] === 'X' && xoGame[6] === 'X') ||
-                (xoGame[1] === 'X' && xoGame[4] === 'X' && xoGame[7] === 'X') ||
-                (xoGame[2] === 'X' && xoGame[5] === 'X' && xoGame[8] === 'X') ||
-                (xoGame[0] === 'X' && xoGame[4] === 'X' && xoGame[8] === 'X') ||
-                (xoGame[2] === 'X' && xoGame[4] === 'X' && xoGame[6] === 'X') 
-            ) {
-                setTimeout(() => {
-                    document.querySelector('.XorO').textContent="X";
-                    document.querySelector('.xogameWin').style.color="cyan"
-                    document.querySelector('.alertBox').style.display="block";
-                }, 100);
-            } 
+                xoGame[data.value] = data.player;
+                checkWin(data.player); 
+                console.log(`Player ${data.player} clicked box ID: ${data.id}, Index: ${data.value}`);
+            }
             
         });
 
-        socket.on('Oplayer', (data) => {
-            const Obox = document.getElementById(data.id);
-            Obox.style.backgroundColor="pink";
-            Obox.textContent = "O";
-            count = data.count;
-
-            xoGame[data.value] = 'O';
-
-            if(
-                (xoGame[0] === 'O' && xoGame[1] === 'O' && xoGame[2] === 'O') ||
-                (xoGame[3] === 'O' && xoGame[4] === 'O' && xoGame[5] === 'O') ||
-                (xoGame[6] === 'O' && xoGame[7] === 'O' && xoGame[8] === 'O') ||
-                (xoGame[0] === 'O' && xoGame[3] === 'O' && xoGame[6] === 'O') ||
-                (xoGame[1] === 'O' && xoGame[4] === 'O' && xoGame[7] === 'O') ||
-                (xoGame[2] === 'O' && xoGame[5] === 'O' && xoGame[8] === 'O') ||
-                (xoGame[0] === 'O' && xoGame[4] === 'O' && xoGame[8] === 'O') ||
-                (xoGame[2] === 'O' && xoGame[4] === 'O' && xoGame[6] === 'O') 
-            ) {
-                setTimeout(() => {
-                    document.querySelector('.XorO').textContent="O";
-                    document.querySelector('.xogameWin').style.color="rgb(238, 5, 238)"
-                    document.querySelector('.alertBox').style.display="block";               
-                }, 100);
-            } 
-        });
+        function checkWin(player){
+            const winCombos = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+            winCombos.forEach(i => {
+                if(xoGame[i[0]]===player && xoGame[i[1]]===player && xoGame[i[2]]===player) {
+                    setTimeout(() => {
+                        document.querySelector('.XorO').textContent=player;
+                        document.querySelector('.xogameWin').style.color= (player === 'X') ?
+                        'cyan' : 'rgb(238, 5, 238)';
+                        document.querySelector('.alertBox').style.display="block"; 
+                        console.log(`AND ${player} PLAYER WON. Congrats!`);
+                                      
+                    },100);
+                }
+            });
+        }
+        
+        
 
     </script>
 </body>
