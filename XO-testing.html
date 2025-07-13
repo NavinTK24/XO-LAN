@@ -3,6 +3,7 @@
 
 <head>
     <title>Tic Tac Toe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:">
 
     <style>
@@ -38,9 +39,45 @@
             display: flex;
             flex-direction: column;
         }
+        
+        .XorO {
+            font-size: 100px;
+        }
+        .replayButton {
+            background-color: rgb(185, 66, 66);
+            width: 80px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: large;
+            font-family:'Times New Roman', Times, serif;
+
+        }
+        .replayDiv :hover {
+            transition: 0.5;
+            background-color: rgb(89, 160, 71);
+            box-shadow: 2px 8px 8px rgba(0, 0, 0, 0.3);
+        }
         .alertBox {
             position: fixed;
-            display: block;
+        }
+        .xogameWin {
+            height: 266px;
+            width: 266px;
+            background-color: rgb(43, 42, 43);
+            border-radius: 15px;
+            position: fixed;
+
+        }
+        .replayDiv {
+            position: relative;
+        }
+        .alertBox {
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: fixed;
         }
         .xogameWin{
             display: flex;
@@ -53,26 +90,24 @@
             background-color: rgb(43, 42, 43);
             border-radius: 15px;
         } 
-        .XorO {
-            font-size: 90px;
-        }
         .replayDiv{
-            position: fixed;
-            margin: 5px;
-            display: flex;
-            justify-content: center;           
+            position: relative;
+            top: 180px;         
         }
-        .replayButton {
-            background-color: rgb(185, 66, 66);
-            width: 80px;
-            height: 30px;
-            border-radius: 10px;
-        }
+        @media screen and (max-width: 350px) {
+            .boxes {
+                height: 140px;
+                width: 140px;
+            }
+        }    
+        
     </style>
+
 </head>
 
 <body>
-    <div class="container">
+
+    <div class="container">     
         <div class="row1">
             <div class="boxes" id="box1" data-value="0"></div>
             <div class="boxes" id="box2" data-value="1"></div>
@@ -93,19 +128,48 @@
 
         <div class="alertBox">
             <div class="xogameWin">
-                <h1 class="XorO"></h1> <br>
+                <h1 class="XorO"></h1> 
                 <h1>Player Won</h1>
             </div>
             <div class="replayDiv">
-                <button class="replayButton">Replay</button>
+                <button class="replayButton" onclick="replayRun()">Replay</button>
             </div>
         </div>
     </div>
 
+    
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
+        //Scriptings
+        
         const socket = io();
+        
+        //An empty array to assign and check winning state
+        let xoGame = [
+            '', '', '',
+            '', '', '',
+            '', '', ''
+        ];
+        let winOrlose = '';
+        
+        //function that resets the page
+        function replayRun() {
+            socket.emit('resetEverything');   
+        }
+        //socket that catches the reset signal sent by the server
+        socket.on('resetBoardForAll', () => {
+            const cells = document.querySelectorAll('.boxes');
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.style.background = '';
+            });
+            winOrlose = '';
+            xoGame = ['', '', '', '', '', '', '', '', ''];
+            document.querySelector('.alertBox').style.display = 'none';
+        });
+
+        //loop that sends the box that clicked to the server
         const boxClick = document.querySelectorAll(".boxes");
         boxClick.forEach(box => {
 
@@ -119,28 +183,23 @@
             });
         });
         
-        
-        
-        let xoGame = [
-            '', '', '',
-            '', '', '',
-            '', '', ''
-        ];
-        let num = 0;
+
+        //to retreive data and update them to the client from the server
         socket.on('updatedDiv', (data) => {
             const box = document.getElementById(data.id);
             if (box.textContent === '') {
                 box.textContent = data.player;
-                box.style.background = (box.textContent === 'X') ? 'cyan' : 'pink';
+                box.style.background = (data.player === 'X') ? 'cyan' : 'pink';
 
                 xoGame[data.value] = data.player;
-                checkWin(data.player); 
-                console.log(`Player ${data.player} clicked box ID: ${data.id}, Index: ${data.value}`);
+                checkWin(data.player, data.count); 
+                console.log(`Player ${data.player} clicked box ID: ${data.id}, Index: ${data.value}, Count: ${data.count}`);
             }
             
         });
 
-        function checkWin(player){
+        //function that checks which player(X or O) won
+        function checkWin(player, count){
             const winCombos = [
                 [0, 1, 2],
                 [3, 4, 5],
@@ -150,24 +209,47 @@
                 [2, 5, 8],
                 [0, 4, 8],
                 [2, 4, 6]
-            ];
+            ]; //loop that check and return if matches with the array winCombos
             winCombos.forEach(i => {
                 if(xoGame[i[0]]===player && xoGame[i[1]]===player && xoGame[i[2]]===player) {
+
+                    winOrlose = 'won';
                     setTimeout(() => {
                         document.querySelector('.XorO').textContent=player;
                         document.querySelector('.xogameWin').style.color= (player === 'X') ?
                         'cyan' : 'rgb(238, 5, 238)';
-                        document.querySelector('.alertBox').style.display="block"; 
-                        console.log(`AND ${player} PLAYER WON. Congrats!`);
+                        document.querySelector('.alertBox').style.display="flex";
+        
+                        confetti({
+                            particleCount: 200,
+                            spread: 110,
+                            origin: { y: 0.6 },
+                            gravity: 0.7,    
+                            ticks: 350
+                        });
+                        console.log(`AND ${player} PLAYER WON. Congrats!\n`);
                                       
                     },100);
+                    return;
                 }
             });
+            //decison when the game state reaches draw
+            if(count === 9) {
+                if(winOrlose != 'won') {
+                    setTimeout(() => {
+                        document.querySelector('.XorO').textContent = 'NO';
+                        document.querySelector('.xogameWin').style.color= 'white'
+                        document.querySelector('.alertBox').style.display="flex";
+                        console.log("Neither Player Wonn");
+                    },100);
+                }
+            }
         }
-        
-        
 
     </script>
+    <!-- to bring the confetti effect when won -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 </body>
 
 </html>
