@@ -7,7 +7,7 @@ const { SerialPort } = require('serialport');
 const fs = require('fs');
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname,'testing','index4.html'));
+    res.sendFile(path.join(__dirname,'XO.html'));
 });
 
 //const device = '/dev/ttyUSB0'; //board port id
