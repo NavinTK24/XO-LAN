@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname,'testing','index4.html'));
 });
 
-const device = '/dev/ttyUSB0'; //board port id
+//const device = '/dev/ttyUSB0'; //board port id
 var count = 0;
 var Xclient = '';
 var Oclient = '';
